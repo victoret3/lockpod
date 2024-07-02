@@ -1,8 +1,8 @@
 import fetch from 'node-fetch';
 
-const HUBSPOT_API_URL = 'https://api.hsforms.com/submissions/v3/integration/submit';
-const HUBSPOT_PORTAL_ID = '144974746';
-const HUBSPOT_FORM_ID = '3b8ff1e7-07dc-4331-bf35-7412eebd8714';
+const HUBSPOT_API_URL = process.env.HUBSPOT_API_URL;
+const HUBSPOT_PORTAL_ID = process.env.HUBSPOT_PORTAL_ID;
+const HUBSPOT_FORM_ID = process.env.HUBSPOT_FORM_ID;
 
 export class HubSpotFormService {
   async submitForm(data: any): Promise<any> {

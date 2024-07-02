@@ -1,35 +1,44 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
-import { HubSpotFormService } from './hubspot-form.service';
+import fetch from 'node-fetch';
 
-const hubSpotFormService = new HubSpotFormService();
+const HUBSPOT_API_URL = process.env.HUBSPOT_API_URL;
+const HUBSPOT_PORTAL_ID = process.env.HUBSPOT_PORTAL_ID;
+const HUBSPOT_FORM_ID = process.env.HUBSPOT_FORM_ID;
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  console.log('Handler invoked');
+export class HubSpotFormService {
+  async submitForm(data: any): Promise<any> {
+    const apiUrl = `${HUBSPOT_API_URL}/${HUBSPOT_PORTAL_ID}/${HUBSPOT_FORM_ID}`;
 
-  if (req.method !== 'POST') {
-    console.log('Invalid method:', req.method);
-    return res.status(405).json({ message: 'Only POST requests are allowed' });
-  }
+    const body = {
+      fields: [
+        { name: 'firstname', value: data.Name },
+        { name: 'email', value: data.email },
+        { name: 'message', value: data.message },
+      ],
+      context: {
+        pageUri: data.pageUri,
+        pageName: 'Contact Form'
+      }
+    };
 
-  const { Name, email, message, pageUri } = req.body;
-  console.log('Request body:', req.body);
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
 
-  if (!Name || !email || !message) {
-    console.log('Missing required fields');
-    return res.status(400).json({ message: 'Missing required fields' });
-  }
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error submitting form to HubSpot:', errorData);
+        throw new Error(`Failed to submit form: ${response.statusText}`);
+      }
 
-  try {
-    const response = await hubSpotFormService.submitForm({ Name, email, message, pageUri });
-    console.log('Form submitted successfully');
-    return res.status(200).json(response);
-  } catch (error) {
-    if (error instanceof Error) {
-      console.log('Internal server error:', error.message);
-      return res.status(500).json({ message: 'Internal server error', error: error.message });
-    } else {
-      console.log('Internal server error:', error);
-      return res.status(500).json({ message: 'Internal server error', error: 'Unknown error' });
+      return await response.json();
+    } catch (error) {
+      console.error('Error submitting form to HubSpot:', error);
+      throw new Error('Failed to submit form to HubSpot');
     }
   }
 }
