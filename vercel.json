@@ -1,0 +1,16 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "contact-form/**/*.ts",
+        "use": "@vercel/node"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/contact-form/(.*)",
+        "dest": "/contact-form/$1"
+      }
+    ]
+  }
+  
